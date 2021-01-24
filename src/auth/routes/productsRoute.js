@@ -69,6 +69,8 @@ productRouter.put('/:id', isAuth, isSeller, async (req, res) => {
     }
 });
 
+//make a notification sent to the admin for if user wants to delete a product
+
 productRouter.delete('/:id', isAuth, isAdmin, async (req, res) => {
   const product = await Product.findById(req.params.id);
   if (product) {
