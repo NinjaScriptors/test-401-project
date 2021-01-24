@@ -56,6 +56,9 @@ const isAdmin = (req, res, next) => {
 
 
 const isSeller = (req, res, next) => {
+  console.log('req.user.isSeller >>>', req.user.isSeller);
+  console.log('req.user >>>', req.user);
+
   if (req.user && req.user.isSeller) {
     next();
   } else {
@@ -65,6 +68,9 @@ const isSeller = (req, res, next) => {
 
 
 const isSellerOrAdmin = (req, res, next) => {
+  console.log('req.user.isSeller >>>', req.user.isSeller);
+  console.log('req.user >>>', req.user);
+
   if (req.user && (req.user.isSeller || req.user.isAdmin)) {
     next();
   } else {
