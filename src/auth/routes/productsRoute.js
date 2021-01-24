@@ -1,7 +1,7 @@
 'use strict';
 
 const express = require('express');
-const { isAdmin, isAuth, isSellerOrAdmin } = require('../../../util');
+const { isAdmin, isAuth, isSellerOrAdmin, isSeller } = require('../../../util');
 const Product = require('../models/products/product-schema.js');
 const productRouter = express.Router();
 
@@ -45,24 +45,31 @@ productRouter.post('/', isAuth, isSellerOrAdmin, async (req, res) => {
   res.send({ message: 'Product Created', product: createdProduct });
 });
 
-productRouter.put('/:id', isAuth, isSellerOrAdmin, async (req, res) => {
+//Can an Admin update other users' products ?
+productRouter.put('/:id', isAuth, isSeller, async (req, res) => {
   const productId = req.params.id;
   const product = await Product.findById(productId);
   if (product) {
-    product.name = req.body.name;
-    product.price = req.body.price;
-    product.image = req.body.image;
-    product.category = req.body.category;
-    product.brand = req.body.brand;
-    product.countInStock = req.body.countInStock;
-    product.description = req.body.description;
-    const updatedProduct = await product.save();
-    console.log('Updated Product >>>>', updatedProduct);
-    res.send({ message: 'Product Updated', product: updatedProduct });
-  } else {
-    res.status(404).send({ message: 'Product Not Found' });
-  }
+    if(req.user._id == product.seller  ){
+
+      product.name = req.body.name;
+      product.price = req.body.price;
+      product.image = req.body.image;
+      product.category = req.body.category;
+      product.brand = req.body.brand;
+      product.countInStock = req.body.countInStock;
+      product.description = req.body.description;
+      const updatedProduct = await product.save();
+      console.log('Updated Product >>>>', updatedProduct);
+      res.send({ message: 'Product Updated', product: updatedProduct });
+    } else {
+      res.status(404).send({ message: 'Product Not Found / You can not update this product' });
+    }
+
+    }
 });
+
+//make a notification sent to the admin for if user wants to delete a product
 
 productRouter.delete('/:id', isAuth, isAdmin, async (req, res) => {
   const product = await Product.findById(req.params.id);

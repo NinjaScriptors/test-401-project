@@ -30,7 +30,7 @@ userRouter.post('/signup', async (req, res) => {
     name: req.body.name,
     email: req.body.email,
     password: bcrypt.hashSync(req.body.password, 8),
-    isAdmin: req.body.isAdmin,
+    // isAdmin: req.body.isAdmin,
     isSeller: req.body.isSeller
   });
   const createdUser = await user.save();
@@ -43,6 +43,7 @@ userRouter.post('/signup', async (req, res) => {
     isSeller: user.isSeller,
     token: generateToken(createdUser),
   });
+  console.log('TOKEN >>>', generateToken(createdUser));
 });
 
 userRouter.get('/:id', async (req, res) => {
@@ -55,7 +56,7 @@ userRouter.get('/:id', async (req, res) => {
   }
 });
 
-userRouter.get('/', isAuth, isAdmin, async (req, res) => {
+userRouter.get('/', isAuth, async (req, res) => {
   const users = await User.find({});
   res.send(users);
 });
@@ -63,6 +64,7 @@ userRouter.get('/', isAuth, isAdmin, async (req, res) => {
 userRouter.delete('/:id', isAuth, isAdmin, async (req, res) => {
   const user = await User.findById(req.params.id);
   if (user) {
+    //if (user.isAdmin === true)
     if (user.email === 'admin@example.com') {
       res.status(400).send({ message: 'Can Not Delete Admin User' });
       return;
@@ -75,16 +77,35 @@ userRouter.delete('/:id', isAuth, isAdmin, async (req, res) => {
   }
 });
 
-userRouter.put('/:id', isAuth, isAdmin, async (req, res) => {
+//Update from buyer to seller by User
+userRouter.put('/:id', isAuth, async (req, res) => {
   const user = await User.findById(req.params.id);
   if (user) {
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
     user.isSeller = Boolean(req.body.isSeller);
-    user.isAdmin = Boolean(req.body.isAdmin);
+    // req.user.isSeller = true;
+    // user.isAdmin = Boolean(req.body.isAdmin);
     // user.isAdmin = req.body.isAdmin || user.isAdmin;
     const updatedUser = await user.save();
     console.log('Updated User >>>', updatedUser);
+    res.send({ message: 'User Updated', user: updatedUser });
+  } else {
+    res.status(404).send({ message: 'User Not Found' });
+  }
+});
+
+//Update from buyer to admin by Admin
+userRouter.put('/:id/admin', isAuth, isAdmin, async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (user) {
+    user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
+    // user.isSeller = Boolean(req.body.isSeller);
+    user.isAdmin = Boolean(req.body.isAdmin);
+    // user.isAdmin = req.body.isAdmin || user.isAdmin;
+    const updatedUser = await user.save();
+    console.log('Updated to Admin >>>', updatedUser);
     res.send({ message: 'User Updated', user: updatedUser });
   } else {
     res.status(404).send({ message: 'User Not Found' });
